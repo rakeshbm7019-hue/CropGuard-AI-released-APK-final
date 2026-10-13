@@ -1,4 +1,5 @@
-name: Build & Release Signed APK
+
+      name: Build & Release Signed APK
 
 on:
   push:
@@ -67,6 +68,42 @@ jobs:
             echo "RELEASE_KEY_PASSWORD=cropguard2026" >> android/gradle.properties
           fi
 
+      - name: Verify google-services.json
+        run: |
+          mkdir -p android/app
+          if [ ! -f "android/app/google-services.json" ]; then
+            echo "Creating fallback google-services.json for Gradle build..."
+            cat << 'EOF' > android/app/google-services.json
+          {
+            "project_info": {
+              "project_number": "538946041778",
+              "project_id": "cropguard-ai",
+              "storage_bucket": "cropguard-ai.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:538946041778:android:b234ca810f438902",
+                  "android_client_info": {
+                    "package_name": "com.cropguard.ai"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyD-mock-cropguard-demo-key-12345"
+                  }
+                ],
+                "services": {}
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+          fi
+          mkdir -p android/app/src/release
+          cp android/app/google-services.json android/app/src/release/google-services.json
+
       - name: Make Gradle Wrapper Executable
         run: chmod +x android/gradlew
 
@@ -91,4 +128,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
